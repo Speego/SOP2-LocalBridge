@@ -1,0 +1,21 @@
+Tutaj zostały opisane zasady obsługiwania klienta po jego włączeniu, których nie wyszczególniono w trakcie grania.
+
+Karty zostały opisane zgodnie ze standardem z wyjątkiem dziesiątki. To znaczy, że są od 2 do 9, T (jako 10), J (walet), Q (dama), K (król), A (as).
+
+
+LICYTACJA:
+Należy wpisać dwie liczby. Pierwsza to wysokość licytacji (od 1 do 7). Druga to kolor zgodny z hierarchią kolorów w brydżu, to jest:
+1 - trefl (clubs)
+2 - karo (diamonds)
+3 - kier (hearts)
+4 - pik (spades)
+5 - bez atu (no trumps)
+
+Jeżeli chcesz spasować, wpisz 0 (zero) i cokolwiek.
+
+UWAGA!
+Nie sugeruj się cyframi w nawiasach podanych przy kolorach.
+
+
+ROZGRYWKA:
+Należy wpisać dwie wartości. Pierwsza to typ karty (tak jak podano na górze tej instrukcji). Druga to kolor. Numer koloru został podany w nawiasie obok nazwy koloru przy wypisywaniu kart.

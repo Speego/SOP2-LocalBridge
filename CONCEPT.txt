@@ -1,0 +1,29 @@
+Projekt ten to zadanie 3. z listy zadań projektowych, czyli symulacja gry w brydża.
+
+Projekt został stworzony w języku C++. Zdecydowałem się korzystać z niego zamiast z czystego C ze względu na obiektowość pomocną przy wymyślaniu modułów gry oraz ze względu na klasy typu vector oraz string, które oszczędziły mi sporo dłubania.
+
+Projekt umożliwia stworzenie wielu stolików do gry i jednoczesną rozgrywkę na każdym z nich. Nie jest możliwe dołączenie jednego gracza do wielu stolików. Spełnione są wszystkie założenia zawarte w opisie projektu na Pańskiej stronie.
+
+Komunikacja między procesami jest stworzona w modelu serwer-klient i w całości jest oparta na kolejkach komunikatów. Kolejek tych jest 10 i przesyłają informacje o liczbie dostępnych stolików, graczach przy stolikach, o samym graczu, który chce dołączyć do gry, o kartach, licytacji, wyniku gry, jest także komunikat akceptacji (na przykład, czy gracz wybrał stolik, do którego może dołączyć; jeżeli nie, to dostaje komunikat o braku przyjęcia tego zgłoszenia). Dodatkowe informacje o budowie komunikatów są zakomentowane w plikach "server.h", "table.h", "player.h" oraz "client.h".
+
+Klient jest tak zbudowany, że w każdym momencie działania wie, jaki komunikat ma otrzymać od serwera. W związku z tym, zawsze czeka na komunikat i jest blokowany do czasu otrzymania informacji. Znowuż serwer musi bezustannie sprawdzać, czy dochodzi jakiś nowy gracz oraz przechodzi po wszystkich stolikach i sprawdza, czy dostarczono odpowiedni komunikat od każdego ze stolików. W związku z tym wszystkie funkcje otrzymywania komunikatu w serwerze mają flagę IPC_NOWAIT. Każdy stolik w każdej chwili wie, w którym momencie rozgrywki się znajduje, co jest oznaczone za pomocą odpowiednich flag.
+
+Jest sześć etapów gry - zbieranie graczy (nie jest możliwe, aby przy stoliku były więcej niż cztery osoby - serwer wysyła wtedy komunikat o braku akceptacji dołączenia do stolika), rozdanie kart, licytacja, koniec licytacji i poinformowanie graczy o jej wyniku, właściwa rozgrywka, zakończenie i podsumowanie rozgrywki. Każdy z etapów opisany jest poniżej.
+
+1) Zbieranie graczy
+Dopóki do stolika nie dołączy czworo graczy, nic się przy stoliku nie dzieje, jest w stanie oczekiwania.
+
+2) Rozdanie kart
+Gdy stolik zbierze czworo graczy, do każdego z nich wysyłany jest komunikat o gotowości stolika do gry. Następnie tworzone i tasowane są karty, które następnie rozdaje się graczom. Zarówno serwer, jak i klient wie, jakie karty ma gracz. Po wysłaniu kart do graczy za pomocą komunikatów następuje faza licytacji. 
+
+3) Licytacja
+Każdy z graczy dostaje numer miejsca, przy którym się znajduje. Gracz pierwszy zawsze gra z trzecim, zaś gracz drugi jest partnerem czwartego. Wysyłany jest komunikat zachęty do licytacji dla gracza, który powinien licytować. UWAGA: ważne, żeby żaden z pozostałych graczy nie wpisywał wtedy nic w terminalu, gdyż grozi to niepoprawnym działaniem programu. Serwer kontroluje licytację i uniemożliwia graczom zalicytowanie w niepoprawny sposób, niezgodny z zasadami brydża. Jeżeli tak się stanie, wysyła do klienta komunikat o braku przyjęcia zgłoszenia i zachęca go ponownie do ponownego zalicytowania. Nie jest możliwe zagranie kontry, gdyż nie są liczone punkty, a jedynie to, kto wygrał (o czym będzie później). Licytacja kończy się po zagraniu czterech pasów z rzędu na początku (wtedy stolik przechodzi od razu do zakończenia i podsumowania) lub trzech pasów z rzędu w późniejszym etapie licytacji. Kończy się także natychmiast, gdy ktoś zalicytuje siedem bez atu.
+
+4) Koniec licytacji
+Po zakończeniu licytacji wysyłana jest informacja o zwycięzcy licytacji oraz o tym, kto jest dziadkiem. Wysyłane są karty dziadka do zwycięzcy licytacji. WAŻNE: zwycięzca licytacji nie jest do końca zgody z zasadami brydża, gdyż jest nim gracz który zalicytował jako ostatni, nie zaś ten, który zalicytował w wygranym kolorze jako pierwszy.
+
+5) Właściwa rozgrywka
+Serwer czeka na karty od odpowiedniego gracza. Klient wie, w którym momencie rundy się znajduje i zgodnie z tym każe graczowi wysłać karty lub odbiera karty od innych graczy poprzez serwer. Serwer sprawdza poprawność karty - po pierwsze, czy gracz w ogóle posiada taką kartę; po drugie, czy karta ta jest położona zgodnie z kolorem. Zachowana jest kolejność grania - to znaczy, że kolejną rundę zaczyna gracz, który zebrał poprzednią lewę. Zaimplementowany został dziadek, który jedynie obserwuje rozgrywkę, zaś gra za niego jego partner. Gracze, który przegrali licytację, dostają karty dziadka w odpowiednim momencie, czyli po zagraniu pierwszej karty w pierwszej rundzie. Serwer liczy, ile kart zebrali zwycięzcy licytacji.
+
+6) Zakończenie i podsumowanie
+Po zakończeniu gry, serwer wysyła graczy do graczy informację, czy zwycięzcom licytacji udało się zebrać wymaganą liczbę lew, a w związku z tym - czy wygrali. Następnie gracze mogą opuścić stolik, co wiąże się z wyłączeniem klienta i zakończeniem procesu. Jeżeli co najmniej jeden gracz opuści stolik, przechodzi on w fazę zbierania graczy. W przeciwnym wypadku, od razu następuje rozdanie kart i następna rozgrywka. Co ważne, nawet jeśli wszyscy gracze opuszczą stolik, zostaje on w bazie. Jeżeli gracz kończy proces, jego dane są usuwane ze stolika i z serwera.
